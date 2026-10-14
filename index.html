@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My AI Chatbot</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      color: #202638;
+      background: #f4f6fb;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      background:
+        radial-gradient(ellipse at 77% 0%, #e6eaff 0, transparent 34%),
+        #f7f8fc;
+    }
+
+    button { font: inherit; cursor: pointer; }
+
+    aside {
+      width: 270px;
+      flex: 0 0 270px;
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      background: #171b2b;
+      color: #f4f5fa;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 5px 28px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #8c79ff, #5c6cf2);
+      box-shadow: 0 7px 20px #6960ed55;
+      font-size: 21px;
+    }
+
+    .brand h2 { margin: 0; font-size: 17px; letter-spacing: .2px; }
+    .brand p { margin: 4px 0 0; color: #a3aac0; font-size: 12px; }
+
+    #new-chat {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #41465a;
+      border-radius: 12px;
+      color: #f6f6ff;
+      background: #252a3e;
+      text-align: left;
+      transition: background .18s, border-color .18s, transform .18s;
+    }
+
+    #new-chat:hover { background: #30364d; border-color: #696f8d; }
+    #new-chat:active { transform: scale(.98); }
+
+    .sidebar-info {
+      margin-top: auto;
+      padding: 16px;
+      border: 1px solid #34394e;
+      border-radius: 14px;
+      background: #202538;
+      line-height: 1.6;
+    }
+
+    .sidebar-info p { margin: 0; color: #c0c5d5; font-size: 12px; }
+    .sidebar-info p + p { margin-top: 5px; color: #8f97af; }
+
+    main {
+      width: min(100%, 980px);
+      height: 100vh;
+      min-height: 520px;
+      margin: 0 auto;
+      padding: 28px clamp(18px, 5vw, 54px) 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 19px;
+      border-bottom: 1px solid #e6e8f0;
+    }
+
+    header h1 { margin: 0; font-size: 19px; letter-spacing: -.35px; }
+    header p { margin: 5px 0 0; color: #858ba0; font-size: 12px; }
+
+    .connection {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border: 1px solid #dceee6;
+      border-radius: 999px;
+      color: #397659;
+      background: #f2faf6;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .connection::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #55bd83;
+      content: "";
+    }
+
+    #conversation {
+      flex: 1;
+      padding: 28px 3px 20px;
+      overflow-y: auto;
+      scrollbar-color: #c9cddd transparent;
+      scrollbar-width: thin;
+    }
+
+    .welcome {
+      max-width: 510px;
+      margin: clamp(55px, 15vh, 145px) auto 0;
+      text-align: center;
+    }
+
+    .welcome-icon {
+      width: 62px;
+      height: 62px;
+      margin: 0 auto 18px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #e1e3fa;
+      border-radius: 22px;
+      color: #6258da;
+      background: linear-gradient(145deg, #fff, #eeedff);
+      box-shadow: 0 12px 35px #5556bb17;
+      font-size: 28px;
+    }
+
+    .welcome h2 { margin: 0; font-size: clamp(24px, 3vw, 32px); letter-spacing: -1px; }
+    .welcome p { margin: 10px 0 0; color: #81879b; font-size: 14px; line-height: 1.65; }
+
+    .suggestions {
+      margin-top: 25px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .suggestions span {
+      padding: 8px 11px;
+      border: 1px solid #e4e6ef;
+      border-radius: 999px;
+      color: #697086;
+      background: #ffffffb8;
+      font-size: 11px;
+    }
+
+    .message {
+      width: fit-content;
+      max-width: min(85%, 700px);
+      margin: 14px 0;
+      padding: 13px 17px;
+      border: 1px solid #e7e9f0;
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 5px 20px #262e4a08;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      animation: appear .2s ease-out;
+    }
+
+    .message.user {
+      margin-left: auto;
+      border: 0;
+      border-bottom-right-radius: 6px;
+      color: #fff;
+      background: linear-gradient(135deg, #7168e9, #5a63db);
+      box-shadow: 0 7px 18px #615edb2b;
+    }
+
+    .message.assistant { margin-right: auto; border-bottom-left-radius: 6px; }
+    .message.error { color: #9b2828; background: #fff2f2; border-color: #f2d1d1; }
+
+    @keyframes appear {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #composer {
+      padding: 12px;
+      border: 1px solid #e1e4ed;
+      border-radius: 19px;
+      background: #fff;
+      box-shadow: 0 12px 36px #2b35500d, 0 2px 6px #2b355008;
+      transition: border-color .18s, box-shadow .18s;
+    }
+
+    #composer:focus-within {
+      border-color: #aaa5ee;
+      box-shadow: 0 0 0 4px #7168e916, 0 12px 36px #2b35500d;
+    }
+
+    #prompt {
+      width: 100%;
+      min-height: 52px;
+      max-height: 160px;
+      resize: vertical;
+      padding: 8px 8px 12px;
+      border: 0;
+      outline: none;
+      color: #292e40;
+      background: transparent;
+      font: inherit;
+      line-height: 1.5;
+    }
+
+    #prompt::placeholder { color: #a1a5b4; }
+    .composer-actions { display: flex; align-items: center; gap: 9px; }
+
+    #attachment-input { display: none; }
+
+    #attachment-button, #send {
+      min-height: 39px;
+      padding: 9px 13px;
+      border: 0;
+      border-radius: 11px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: transform .15s, background .15s, box-shadow .15s;
+    }
+
+    #attachment-button { color: #626a7f; background: #f2f3f8; }
+    #attachment-button:hover { background: #e9eaf3; }
+    #send {
+      margin-left: auto;
+      color: #fff;
+      background: linear-gradient(135deg, #7168e9, #5a63db);
+      box-shadow: 0 5px 12px #615edb2b;
+    }
+    #send:hover { box-shadow: 0 7px 17px #615edb45; transform: translateY(-1px); }
+    #send:disabled, #new-chat:disabled { cursor: wait; opacity: .6; }
+
+    #attachment-status {
+      min-height: 0;
+      padding: 0 5px;
+      color: #747b90;
+      font-size: 11px;
+      overflow-wrap: anywhere;
+    }
+
+    #attachment-status:not(:empty) { padding-top: 10px; }
+    #attachment-status.error { color: #a33232; }
+
+    .footnote { margin: 11px 0 0; color: #a1a5b3; text-align: center; font-size: 10px; }
+
+    @media (max-width: 700px) {
+      body { display: block; }
+      aside {
+        width: 100%;
+        padding: 12px 16px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .brand { padding: 0; }
+      .brand-mark { width: 36px; height: 36px; border-radius: 12px; font-size: 18px; }
+      .brand h2 { font-size: 15px; }
+      .brand p, .sidebar-info { display: none; }
+      #new-chat { width: auto; padding: 10px 12px; font-size: 12px; }
+      main { height: calc(100vh - 60px); min-height: 440px; padding: 18px 14px 15px; }
+      header h1 { font-size: 16px; }
+      .connection { padding: 6px 8px; font-size: 10px; }
+      #conversation { padding-top: 18px; }
+      .welcome { margin-top: 12vh; }
+      .message { max-width: 92%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <aside>
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">✦</div>
+      <div>
+        <h2>My AI Assistant</h2>
+        <p>Your private local chat</p>
+      </div>
+    </div>
+    <button id="new-chat" type="button">＋ &nbsp;New conversation</button>
+    <div class="sidebar-info">
+      <p>Model: qwen2.5:3b</p>
+      <p>Running locally with Ollama</p>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <div>
+        <h1>Conversation</h1>
+        <p>Ask anything, or attach a text file for help.</p>
+      </div>
+      <span class="connection">Local model</span>
+    </header>
+    <section id="conversation" aria-live="polite">
+      <div class="welcome">
+        <div class="welcome-icon" aria-hidden="true">✦</div>
+        <h2>What can I help with?</h2>
+        <p>Chat, brainstorm, ask questions, or share a text file to get started.</p>
+        <div class="suggestions" aria-hidden="true">
+          <span>Explain a concept</span>
+          <span>Help me write</span>
+          <span>Review my code</span>
+        </div>
+      </div>
+    </section>
+    <form id="composer">
+      <textarea id="prompt" placeholder="Message your AI assistant..." aria-label="Message your AI assistant"></textarea>
+      <input id="attachment-input" type="file" multiple accept=".txt,.md,.csv,.json,.py,.js,.ts,.html,.css,.xml,.yaml,.yml,.toml,.ini,.log,.sql,.sh,.ps1,.java,.c,.cpp,.h,.go,.rs">
+      <div class="composer-actions">
+        <button id="attachment-button" type="button">＋ &nbsp;Attach file</button>
+        <button id="send" type="submit">Send &nbsp;➤</button>
+      </div>
+      <div id="attachment-status" aria-live="polite"></div>
+    </form>
+    <p class="footnote">Your conversations stay on this computer.</p>
+  </main>
+
+  <script>
+    const conversation = document.querySelector("#conversation");
+    const composer = document.querySelector("#composer");
+    const promptInput = document.querySelector("#prompt");
+    const sendButton = document.querySelector("#send");
+    const newChatButton = document.querySelector("#new-chat");
+    const attachmentInput = document.querySelector("#attachment-input");
+    const attachmentButton = document.querySelector("#attachment-button");
+    const attachmentStatus = document.querySelector("#attachment-status");
+    let messages = [];
+    let selectedFiles = [];
+
+    const supportedExtensions = new Set([
+      ".txt", ".md", ".csv", ".json", ".py", ".js", ".ts", ".html",
+      ".css", ".xml", ".yaml", ".yml", ".toml", ".ini", ".log", ".sql",
+      ".sh", ".ps1", ".java", ".c", ".cpp", ".h", ".go", ".rs",
+    ]);
+
+    function addMessage(role, content, extraClass = "") {
+      conversation.querySelector(".welcome")?.remove();
+      const element = document.createElement("div");
+      element.className = `message ${role} ${extraClass}`.trim();
+      element.textContent = content;
+      conversation.append(element);
+      conversation.scrollTop = conversation.scrollHeight;
+      return element;
+    }
+
+    function setAttachmentStatus(message, isError = false) {
+      attachmentStatus.textContent = message;
+      attachmentStatus.classList.toggle("error", isError);
+    }
+
+    function renderSelectedFiles() {
+      const names = selectedFiles.map((file) => file.name);
+      setAttachmentStatus(names.length ? `Attached: ${names.join(", ")}` : "");
+    }
+
+    attachmentButton.addEventListener("click", () => attachmentInput.click());
+    attachmentInput.addEventListener("change", () => {
+      const files = Array.from(attachmentInput.files || []);
+      const invalid = files.find((file) => {
+        const extension = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+        return !supportedExtensions.has(extension) || file.size > 1024 * 1024;
+      });
+      if (files.length > 5 || invalid) {
+        selectedFiles = [];
+        attachmentInput.value = "";
+        setAttachmentStatus(
+          invalid
+            ? `${invalid.name} is unsupported or exceeds the 1 MiB limit.`
+            : "Attach no more than 5 files at a time.",
+          true,
+        );
+        return;
+      }
+      selectedFiles = files;
+      renderSelectedFiles();
+    });
+
+    newChatButton.addEventListener("click", () => {
+      messages = [];
+      selectedFiles = [];
+      attachmentInput.value = "";
+      renderSelectedFiles();
+      conversation.replaceChildren();
+      const welcome = document.createElement("div");
+      welcome.className = "welcome";
+      welcome.innerHTML = `
+        <div class="welcome-icon" aria-hidden="true">✦</div>
+        <h2>What can I help with?</h2>
+        <p>Chat, brainstorm, ask questions, or share a text file to get started.</p>
+        <div class="suggestions" aria-hidden="true">
+          <span>Explain a concept</span>
+          <span>Help me write</span>
+          <span>Review my code</span>
+        </div>`;
+      conversation.append(welcome);
+      promptInput.focus();
+    });
+
+    composer.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const prompt = promptInput.value.trim();
+      if ((!prompt && selectedFiles.length === 0) || sendButton.disabled) return;
+
+      sendButton.disabled = true;
+      newChatButton.disabled = true;
+      try {
+        const files = await Promise.all(
+          selectedFiles.map(async (file) => ({
+            name: file.name,
+            content: await file.text(),
+          })),
+        );
+        const content = [
+          prompt || "Please review the attached file(s).",
+          ...files.map((file) => `[Attached: ${file.name}]`),
+        ].join("\n");
+        messages.push({ role: "user", content: prompt, files });
+        addMessage("user", content);
+      } catch (error) {
+        setAttachmentStatus(error.message || "Could not read the selected files.", true);
+        sendButton.disabled = false;
+        newChatButton.disabled = false;
+        return;
+      }
+      promptInput.value = "";
+      selectedFiles = [];
+      attachmentInput.value = "";
+      renderSelectedFiles();
+      const thinking = addMessage("assistant", "Thinking...");
+
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: messages.slice(-12) }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "The request failed.");
+
+        thinking.textContent = result.answer;
+        messages.push({ role: "assistant", content: result.answer });
+      } catch (error) {
+        thinking.classList.add("error");
+        thinking.textContent = error.message || "Could not reach the chatbot server.";
+      } finally {
+        sendButton.disabled = false;
+        newChatButton.disabled = false;
+        promptInput.focus();
+        conversation.scrollTop = conversation.scrollHeight;
+      }
+    });
+
+    promptInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        composer.requestSubmit();
+      }
+    });
+  </script>
+</body>
+</html>
